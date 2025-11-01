@@ -1,0 +1,36 @@
+# Keil MDK 文件
+*.uvoptx
+*.uvgui.*
+*.uvguix.*
+*.dep
+*.crf
+*.build_log.htm
+
+# 编译输出
+*.o
+*.d
+*.lst
+*.axf
+*.lnp
+*.map
+*.elf
+*.hex
+*.bin
+
+# 构建目录
+**/Objects/
+**/Listings/
+**/Build/
+**/build/
+**/Debug/
+**/Release/
+**/output/
+
+# 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 临时文件
+*.tmp
+*.temp
