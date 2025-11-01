@@ -1,4 +1,4 @@
-# Keil MDK 文件
+﻿# Keil MDK 文件
 *.uvoptx
 *.uvgui.*
 *.uvguix.*
@@ -16,21 +16,24 @@
 *.elf
 *.hex
 *.bin
+*.sct
+*_sct.Bak
+*.htm
+*.dbgconf
+*.iex
 
 # 构建目录
+**/DebugConfig/
 **/Objects/
 **/Listings/
 **/Build/
 **/build/
-**/Debug/
-**/Release/
-**/output/
 
 # 系统文件
 Thumbs.db
 Desktop.ini
 .DS_Store
 
-# 临时文件
-*.tmp
-*.temp
+# 需要保留的项目文件
+!*.uvprojx
+!*.uvmpw
