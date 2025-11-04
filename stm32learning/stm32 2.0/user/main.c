@@ -1,45 +1,49 @@
 #include "stm32f10x.h"
-#include "led.h"
-#include "key.h"
-#include "timer.h"
-#include "menu.h"
+#include "motor.h"
 #include "encoder.h"
-#include "OLED.h"
-#include "Delay.h"
-#include "stdio.h"
+#include "timer.h"
+#include "pwm.h"
+#include "pid.h"
+#include "key.h"
+#include "menu.h"
+#include "uart.h"
 
-extern volatile uint8_t menuNeedUpate;
-extern volatile uint32_t now;
+// 全局变量
+SystemMode_t system_mode = MODE_SPEED_CONTROL;
+uint32_t system_tick = 0;
+
+// 中断服务函数声明（Keil MDK格式）
+void TIM2_IRQHandler(void);
+void USART1_IRQHandler(void);
+void EXTI0_IRQHandler(void);
 
 int main(void)
 {
     // 系统初始化
-    SystemInit();
+    SystemInit();  // 标准库提供的系统时钟初始化
     
-    // 外设初始化
-    Menu_Init();
-    LED_Init();
-    KEY_Init();
+    // 各模块初始化
+    Motor_Init();
     Encoder_Init();
-    TIM2_Init();  // 流水灯定时器
-    TIM3_Init();  // 按键扫描定时器
-  
-    OLED_Init();
-    OLED_Display_Menu();
+    PWM_Init();
+    Timer_Init();
+    Key_Init();
+    UART_Init(115200);
+    Menu_Init();
+    
+    // PID参数初始化
+    PID_Init(&motor1, 0.8f, 0.2f, 0.1f);
+    PID_Init(&motor2, 0.8f, 0.2f, 0.1f);
+    
+    // 初始显示
+    Menu_UpdateDisplay();
+    
+    while(1)
+    {
+        // 处理串口数据
+        UART_ProcessData();
         
-    while (1) {
-    int16_t encVal = Encoder_Get();
-    if(currentMenu == MENU_PID && isParamSelected == 1)
-    {
-      if(encVal > 0) Encoder_UP_Handler();
-      else if(encVal < 0) Encoder_DOWN_Handler(); 
+        // 菜单更新（非实时任务）
+        Menu_Update();
     }
-
-    if(menuNeedUpate)
-    {
-      OLED_Display_Menu();
-      menuNeedUpate = 0;
-    }
-    Delay_ms(100);
-  }
 }

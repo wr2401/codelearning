@@ -1,136 +1,70 @@
 #include "encoder.h"
-#include "stm32f10x_gpio.h"
+#include "stm32f10x_tim.h"
 #include "stm32f10x_rcc.h"
-#include "stm32f10x_exti.h"
-#include "menu.h"
-
-extern volatile uint8_t menuNeedUpate;
-int16_t Encoder_Count;
+#include "stm32f10x_gpio.h"
 
 void Encoder_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
-    EXTI_InitTypeDef EXTI_InitStructure;
-    NVIC_InitTypeDef NVIC_InitStructure;
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_ICInitTypeDef TIM_ICInitStructure;
     
-    // 开启GPIOB时钟
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+    // 使能时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 | RCC_APB1Periph_TIM4, ENABLE);
     
-    // 配置PB0, PB1为上拉输入
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    // 编码器引脚初始化 - 浮空输入
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    
+    // 电机1编码器 A6(TIM3_CH1), A7(TIM3_CH2)
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    // 电机2编码器 B6(TIM4_CH1), B7(TIM4_CH2)
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     
-    // 配置PB0、1为外部中断
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource0);
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource1);
-    EXTI_InitStructure.EXTI_Line = EXTI_Line0 | EXTI_Line1;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;  // 下降沿触发
-    EXTI_Init(&EXTI_InitStructure);
+    // 定时器3配置 - 电机1编码器
+    TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
+    TIM_TimeBaseStructure.TIM_Prescaler = 0;
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
     
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	
-    // 配置NVIC
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;			
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;	
-	NVIC_Init(&NVIC_InitStructure);				
-
-	NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;		
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;			
-	NVIC_Init(&NVIC_InitStructure);		
+    TIM_EncoderInterfaceConfig(TIM3, TIM_EncoderMode_TI12, 
+                              TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
     
+    TIM_ICStructInit(&TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_ICFilter = 10;
+    TIM_ICInit(TIM3, &TIM_ICInitStructure);
+    
+    TIM_SetCounter(TIM3, 0);
+    TIM_Cmd(TIM3, ENABLE);
+    
+    // 定时器4配置 - 电机2编码器 (类似配置)
+    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
+    TIM_EncoderInterfaceConfig(TIM4, TIM_EncoderMode_TI12, 
+                              TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+    TIM_ICInit(TIM4, &TIM_ICInitStructure);
+    TIM_SetCounter(TIM4, 0);
+    TIM_Cmd(TIM4, ENABLE);
 }
 
-int16_t Encoder_Get(void)
+int32_t Encoder_GetCount(uint8_t encoder_num)
 {
-	int16_t Temp;
-	Temp = Encoder_Count;
-	Encoder_Count = 0;
-	return Temp;
-}
-
-// 编码器中断服务函数
-void EXTI0_IRQHandler(void)//逆时针
-{
-	if (EXTI_GetITStatus(EXTI_Line0) == SET)
-	{
-		/*如果出现数据乱跳的现象，可再次判断引脚电平，以避免抖动*/
-		if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == 0)
-		{
-			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == 0)
-			{
-				Encoder_Count --;
-			}
-		}
-		EXTI_ClearITPendingBit(EXTI_Line0);
-	}
-}
-
-void EXTI1_IRQHandler(void)//顺时针
-{
-	if (EXTI_GetITStatus(EXTI_Line1) == SET)
-	{
-		/*如果出现数据乱跳的现象，可再次判断引脚电平，以避免抖动*/
-		if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == 0)
-		{
-			if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == 0)
-			{
-				Encoder_Count ++;
-			}
-		}
-		EXTI_ClearITPendingBit(EXTI_Line1);
-	}
-}
-
-void Encoder_UP_Handler(void)
-{
-    if(isParamSelected) {
-        // 参数增加0.1
-        switch(currentMenu) {
-			case MENU_MAIN:
-				break;
-            case MENU_LED_CONTROL:
-                break;
-            case MENU_PID:
-                if(cursorPos == 0) pid_kp += 0.1f;
-                else if(cursorPos == 1) pid_ki += 0.1f;
-                else if(cursorPos == 2) pid_kd += 0.1f;
-                break;
-			case MENU_IMAGE:
-				break;
-			case MENU_ANGLE:
-				break;
-        }
+    if(encoder_num == 1) {
+        return (int32_t)(int16_t)TIM_GetCounter(TIM3);
+    } else {
+        return (int32_t)(int16_t)TIM_GetCounter(TIM4);
     }
-	menuNeedUpate=1;
 }
 
-void Encoder_DOWN_Handler(void)
+void Encoder_ClearCount(uint8_t encoder_num)
 {
-    if(isParamSelected) {
-        // 参数减少0.1
-        switch(currentMenu) {
-			case MENU_MAIN:
-				break;
-            case MENU_LED_CONTROL:
-                break;
-            case MENU_PID:
-                if(cursorPos == 0 ) pid_kp -= 0.1f;
-                else if(cursorPos == 1 ) pid_ki -= 0.1f;
-                else if(cursorPos == 2 ) pid_kd -= 0.1f;
-                break;
-			case MENU_IMAGE:
-				break;
-			case MENU_ANGLE:
-				break;
-        }
+    if(encoder_num == 1) {
+        TIM_SetCounter(TIM3, 0);
+    } else {
+        TIM_SetCounter(TIM4, 0);
     }
-	menuNeedUpate = 1;
 }

@@ -3,8 +3,14 @@
 
 #include "stm32f10x.h"
 
-void TIM2_Init(void);
-void TIM3_Init(void);
-void LED_SetFlowSpeed(uint8_t speed);
+typedef enum {
+    MODE_SPEED_CONTROL = 0,
+    MODE_FOLLOW_CONTROL
+} SystemMode_t;
+
+extern SystemMode_t system_mode;
+extern uint32_t system_tick;
+
+void Timer_Init(void);
 
 #endif
