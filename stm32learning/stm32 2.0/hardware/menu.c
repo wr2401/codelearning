@@ -20,34 +20,37 @@ void Menu_UpdateDisplay(void)
     
     // 显示当前模式
     if(system_mode == MODE_SPEED_CONTROL) {
-        OLED_ShowString(0, 0, "Mode: Speed PID");
+        OLED_ShowString(1, 1, "Mode: Speed PID");
     } else {
-        OLED_ShowString(0, 0, "Mode: Follow");
+        OLED_ShowString(1, 1, "Mode: Follow");
     }
     
     // 显示电机1速度
     sprintf(buffer, "M1:%d/%d", motor1.actual_speed, motor1.target_speed);
-    OLED_ShowString(0, 2, buffer);
+    OLED_ShowString(2, 1, buffer);
     
     // 显示电机2速度
     sprintf(buffer, "M2:%d/%d", motor2.actual_speed, motor2.target_speed);
-    OLED_ShowString(0, 4, buffer);
+    OLED_ShowString(3, 1, buffer);
     
     // 显示编码器位置
     sprintf(buffer, "Pos:%ld", (long)motor1.encoder_count);
-    OLED_ShowString(0, 6, buffer);
+    OLED_ShowString(4, 1, buffer);
 }
+
+static uint8_t last_mode = 0xFF;
+static uint32_t last_update = 0;
 
 void Menu_Update(void)
 {
-    static uint32_t last_update = 0;
-    static uint32_t tick_count = 0;
+    if(system_mode != last_mode) {
+        Menu_UpdateDisplay();
+        last_mode = system_mode;
+        last_update = system_tick;
+    }
     
-    tick_count++;
-    
-    // 每500ms更新一次显示
-    if(tick_count - last_update >= 50) {  // 50 * 10ms = 500ms
-        last_update = tick_count;
+    if(system_tick - last_update > 200) {
+        last_update = system_tick;
         Menu_UpdateDisplay();
     }
 }

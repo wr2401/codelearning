@@ -3,7 +3,7 @@
 #include "motor.h"
 #include "stdio.h"
 #include "string.h"
-//未用数据包，易受干扰
+//未用数据包，不过我感觉这个应该没事
 uint8_t uart_rx_buffer[32];//数据缓冲区
 uint8_t uart_rx_index = 0;//缓冲区写入位置
 uint8_t uart_data_ready = 0;//数据接收完成标志
@@ -72,7 +72,7 @@ void UART_ProcessData(void)
         // 解析速度设置命令: "@speed%200"
         if(strstr((char*)uart_rx_buffer, "@speed%") != NULL) {
             int speed;
-			//为什么不用scanf，scanf从键盘输入读取，无法进入，%%%中前两个%指配置一个%，对应%200中的%
+			//scanf从键盘输入读取，无法进入，%%%中前两个%指配置一个%，对应%200中的%
             if(sscanf((char*)uart_rx_buffer, "@speed%%%d", &speed) == 1) {
                 motor1.target_speed = speed;
                 motor2.target_speed = speed;

@@ -7,20 +7,19 @@
 #include "key.h"
 #include "menu.h"
 #include "uart.h"
-
+#include "stdio.h"
+#include "OLED.h"
 // 全局变量
 SystemMode_t system_mode = MODE_SPEED_CONTROL;
 uint32_t system_tick = 0;
 
-// 中断服务函数声明（Keil MDK格式）
-void TIM2_IRQHandler(void);
-void USART1_IRQHandler(void);
-void EXTI0_IRQHandler(void);
-
 int main(void)
 {
-    // 系统初始化
-    SystemInit();  // 标准库提供的系统时钟初始化
+    // 只调用SystemInit() - 让标准库处理时钟
+    SystemInit();
+    
+    // 初始化串口用于调试
+    UART_Init(115200);
     
     // 各模块初始化
     Motor_Init();
@@ -28,22 +27,21 @@ int main(void)
     PWM_Init();
     Timer_Init();
     Key_Init();
-    UART_Init(115200);//需在VOFA+设置相同的波特率
-    Menu_Init();
+	OLED_Init();
     
-    // PID参数初始化
+    // PID初始化
     PID_Init(&motor1, 0.8f, 0.2f, 0.1f);
     PID_Init(&motor2, 0.8f, 0.2f, 0.1f);
     
-    // 初始显示
-    Menu_UpdateDisplay();
-    
     while(1)
     {
-        // 处理串口数据
         UART_ProcessData();
-        
-        // 菜单更新（非实时任务）
         Menu_Update();
+        
+        static uint32_t last_send = 0;
+        if(system_tick - last_send > 100) {  // 100*10ms=1s
+            last_send = system_tick;
+            UART_SendData();  // 发送到VOFA+
+        }
     }
 }
