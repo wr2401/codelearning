@@ -15,11 +15,11 @@ void PWM_Init(void)
     
     // PWM引脚配置 - PA2(TIM1_CH2), PA3(TIM1_CH3)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;//复用推挽输出，控制权交给片上外设
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     
-    // 定时器1基础配置
+    // 定时器1基础配置（把高级定时器当作通用定时器输出PWM）
     TIM_TimeBaseStructure.TIM_Period = 1000 - 1;      // ARR
     TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;     // 72MHz/72 = 1MHz, 1kHz PWM
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
@@ -28,16 +28,16 @@ void PWM_Init(void)
     TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
     
     // PWM输出配置
-    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Disable;
-    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+	TIM_OCStructInit(&TIM_OCInitStructure);//全部初始化，防止局部变量的不确定性
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;//设置输出比较模式
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;//设置输出使能
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//设置输出比较极性
     TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
-    TIM_OCInitStructure.TIM_Pulse = 0;
+    TIM_OCInitStructure.TIM_Pulse = 0;//CCR
     
     // 通道2 - 电机1 PWM
-    TIM_OC2Init(TIM1, &TIM_OCInitStructure);
-    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC2Init(TIM1, &TIM_OCInitStructure);//输出比较参数，通道初始化
+    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);//CCR寄存器预装功能：写入的值在更新时生效
     
     // 通道3 - 电机2 PWM
     TIM_OC3Init(TIM1, &TIM_OCInitStructure);

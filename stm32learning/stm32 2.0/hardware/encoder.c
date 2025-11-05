@@ -25,18 +25,18 @@ void Encoder_Init(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     
-    // 定时器3配置 - 电机1编码器
-    TIM_TimeBaseStructure.TIM_Period = 0xFFFF;
-    TIM_TimeBaseStructure.TIM_Prescaler = 0;
+    // 定时器3时钟源配置 - 电机1编码器
+    TIM_TimeBaseStructure.TIM_Period = 0xFFFF;//即65536-1满量程计数，范围最大，方便换算负数
+    TIM_TimeBaseStructure.TIM_Prescaler = 0;//不分频
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
-    
+    //输入捕获单元配置，只用滤波器和极性选择，ICPrescaler和ICSelection不用
     TIM_EncoderInterfaceConfig(TIM3, TIM_EncoderMode_TI12, 
-                              TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+                              TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);//都计数
     
-    TIM_ICStructInit(&TIM_ICInitStructure);
-    TIM_ICInitStructure.TIM_ICFilter = 10;
+    TIM_ICStructInit(&TIM_ICInitStructure);//防止结构体不完整造成不确定值
+    TIM_ICInitStructure.TIM_ICFilter = 10;//若计数丢失，把值减小，若误计数，把值增大
     TIM_ICInit(TIM3, &TIM_ICInitStructure);
     
     TIM_SetCounter(TIM3, 0);
@@ -45,7 +45,7 @@ void Encoder_Init(void)
     // 定时器4配置 - 电机2编码器 (类似配置)
     TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
     TIM_EncoderInterfaceConfig(TIM4, TIM_EncoderMode_TI12, 
-                              TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+	                           TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);//后面两个是极性，不对就改falling
     TIM_ICInit(TIM4, &TIM_ICInitStructure);
     TIM_SetCounter(TIM4, 0);
     TIM_Cmd(TIM4, ENABLE);

@@ -28,7 +28,7 @@ int main(void)
     PWM_Init();
     Timer_Init();
     Key_Init();
-    UART_Init(115200);
+    UART_Init(115200);//需在VOFA+设置相同的波特率
     Menu_Init();
     
     // PID参数初始化
