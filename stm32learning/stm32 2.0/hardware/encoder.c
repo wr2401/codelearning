@@ -14,7 +14,7 @@ void Encoder_Init(void)
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 | RCC_APB1Periph_TIM4, ENABLE);
     
     // 编码器引脚初始化 - 浮空输入
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     
     // 电机1编码器 A6(TIM3_CH1), A7(TIM3_CH2)

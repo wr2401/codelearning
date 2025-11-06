@@ -39,18 +39,24 @@ void Menu_UpdateDisplay(void)
 }
 
 static uint8_t last_mode = 0xFF;
-static uint32_t last_update = 0;
 
 void Menu_Update(void)
 {
+	int16_t last_target_speed1=0;
+	int16_t last_target_speed2=0;
+	int16_t last_actual_speed1=0;
+	int16_t last_actual_speed2=0;
+	
     if(system_mode != last_mode) {
         Menu_UpdateDisplay();
         last_mode = system_mode;
-        last_update = system_tick;
     }
     
-    if(system_tick - last_update > 200) {
-        last_update = system_tick;
+    if(last_target_speed1 != motor1.target_speed || last_target_speed2 != motor2.target_speed || last_actual_speed1 != motor1.actual_speed || last_actual_speed2 != motor2.actual_speed) {
+        last_target_speed1=motor1.target_speed;
+	    last_target_speed2=motor2.target_speed;
+	    last_actual_speed1=motor1.actual_speed;
+	    last_actual_speed2=motor2.actual_speed;
         Menu_UpdateDisplay();
     }
 }

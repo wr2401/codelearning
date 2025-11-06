@@ -1,6 +1,6 @@
 #include "motor.h"
 #include "stm32f10x.h"
-
+#include "pwm.h"
 Motor_t motor1, motor2;
 
 void Motor_Init(void)
@@ -20,13 +20,15 @@ void Motor_Init(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     
     // 初始化电机状态
-    motor1.target_speed = 0;
+    motor1.target_speed = 200;
     motor1.actual_speed = 0;
     motor1.pwm_output = 0;
     
-    motor2.target_speed = 0;
+    motor2.target_speed = 200;
     motor2.actual_speed = 0;
     motor2.pwm_output = 0;
+	
+	PWM_Init();
 }
 
 void Motor_SetDirection(uint8_t motor_num, MotorDirection_t dir)
@@ -36,10 +38,12 @@ void Motor_SetDirection(uint8_t motor_num, MotorDirection_t dir)
             case MOTOR_FORWARD:
                 GPIO_SetBits(GPIOB, GPIO_Pin_12);
                 GPIO_ResetBits(GPIOB, GPIO_Pin_13);
+				TIM_SetCompare2(TIM1,motor1.pwm_output);
                 break;
             case MOTOR_BACKWARD:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_12);
                 GPIO_SetBits(GPIOB, GPIO_Pin_13);
+				TIM_SetCompare2(TIM1,motor1.pwm_output);
                 break;
             case MOTOR_STOP:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_12);
@@ -51,10 +55,12 @@ void Motor_SetDirection(uint8_t motor_num, MotorDirection_t dir)
             case MOTOR_FORWARD:
                 GPIO_SetBits(GPIOB, GPIO_Pin_14);
                 GPIO_ResetBits(GPIOB, GPIO_Pin_15);
+				TIM_SetCompare3(TIM1,motor2.pwm_output);
                 break;
             case MOTOR_BACKWARD:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_14);
                 GPIO_SetBits(GPIOB, GPIO_Pin_15);
+				TIM_SetCompare3(TIM1,motor2.pwm_output);
                 break;
             case MOTOR_STOP:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_14);
