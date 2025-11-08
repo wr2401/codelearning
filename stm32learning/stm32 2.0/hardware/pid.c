@@ -21,8 +21,8 @@ void PID_Calculate(Motor_t* motor)
     
     // 积分项，带积分限幅
     motor->integral += motor->error;
-    if(motor->integral > 1000) motor->integral = 100;
-    if(motor->integral < -1000) motor->integral = -100;
+    if(motor->integral > 100) motor->integral = 100;
+    if(motor->integral < -100) motor->integral = -100;
     float i_term = motor->ki * motor->integral;
     
     // 微分项
@@ -34,8 +34,8 @@ void PID_Calculate(Motor_t* motor)
     float output = p_term + i_term + d_term;
     
     // 输出限幅
-    if(output > 800) output = 800;
-    if(output < -800) output = -800;
+    if(output > 80) output = 80;
+    if(output < -80) output = -80;
     
     motor->pwm_output = (int16_t)output;
 }
@@ -48,15 +48,15 @@ void Follow_Control(void)
     int32_t position_error = motor1.encoder_count - motor2.encoder_count;
     
     // 位置式PID参数
-    float kp = 0.5f, ki = 0.01f, kd = 0.1f;
+    float kp = 0.303f, ki = 0.050f, kd = 0.100f;
     
     // P项
     float p_term = kp * position_error;
     
     // I项，带积分限幅
     integral += position_error;
-    if(integral > 1000) integral = 1000;
-    if(integral < -1000) integral = -1000;
+    if(integral > 100) integral = 100;
+    if(integral < -100) integral = -100;
     float i_term = ki * integral;
     
     // D项
@@ -67,8 +67,8 @@ void Follow_Control(void)
     float output = p_term + i_term + d_term;
     
     // 输出限幅
-    if(output > 1000) output = 1000;
-    if(output < -1000) output = -1000;
+    if(output > 100) output = 100;
+    if(output < -100) output = -100;
     
     // 设置电机输出
     PWM_SetMotor1(0);  // 电机1自由转动

@@ -12,5 +12,6 @@ extern SystemMode_t system_mode;
 extern uint32_t system_tick;
 
 void Timer_Init(void);
+void TIM1_UP_IRQHandler(void);
 
 #endif

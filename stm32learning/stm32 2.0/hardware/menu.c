@@ -6,12 +6,6 @@
 
 extern SystemMode_t system_mode;
 
-void Menu_Init(void)
-{
-    OLED_Init();
-    Menu_UpdateDisplay();
-}
-
 void Menu_UpdateDisplay(void)
 {
     char buffer[32];
@@ -28,35 +22,46 @@ void Menu_UpdateDisplay(void)
     // 显示电机1速度
     sprintf(buffer, "M1:%d/%d", motor1.actual_speed, motor1.target_speed);
     OLED_ShowString(2, 1, buffer);
-    
+	//output计算值
+    sprintf(buffer, "out:%d", motor1.pwm_output);
+    OLED_ShowString(2, 9, buffer);
     // 显示电机2速度
     sprintf(buffer, "M2:%d/%d", motor2.actual_speed, motor2.target_speed);
     OLED_ShowString(3, 1, buffer);
+	
+	sprintf(buffer, "out:%d", motor2.pwm_output);
+    OLED_ShowString(3, 9, buffer);
     
     // 显示编码器位置
-    sprintf(buffer, "Pos:%ld", (long)motor1.encoder_count);
+    sprintf(buffer, "Pos:%ld", (long)motor2.encoder_count);
     OLED_ShowString(4, 1, buffer);
 }
 
-static uint8_t last_mode = 0xFF;
-
 void Menu_Update(void)
 {
-	int16_t last_target_speed1=0;
-	int16_t last_target_speed2=0;
-	int16_t last_actual_speed1=0;
-	int16_t last_actual_speed2=0;
-	
-    if(system_mode != last_mode) {
-        Menu_UpdateDisplay();
-        last_mode = system_mode;
-    }
+    static uint32_t last_update = 0;
+    static uint32_t tick_count = 0;
     
-    if(last_target_speed1 != motor1.target_speed || last_target_speed2 != motor2.target_speed || last_actual_speed1 != motor1.actual_speed || last_actual_speed2 != motor2.actual_speed) {
-        last_target_speed1=motor1.target_speed;
-	    last_target_speed2=motor2.target_speed;
-	    last_actual_speed1=motor1.actual_speed;
-	    last_actual_speed2=motor2.actual_speed;
-        Menu_UpdateDisplay();
+    tick_count++;
+    char buffer[32];
+    // 每500ms更新一次显示
+    if(tick_count - last_update >=200) {  // 50 * 10ms = 500ms
+        // 显示电机1速度
+		sprintf(buffer, "M1:%d/%d", motor1.actual_speed, motor1.target_speed);
+		OLED_ShowString(2, 1, buffer);
+		//output计算值
+		sprintf(buffer, "out:%d", motor1.pwm_output);
+		OLED_ShowString(2, 9, buffer);
+		// 显示电机2速度
+		sprintf(buffer, "M2:%d/%d", motor2.actual_speed, motor2.target_speed);
+		OLED_ShowString(3, 1, buffer);
+	
+		sprintf(buffer, "out:%d", motor2.pwm_output);
+		OLED_ShowString(3, 9, buffer);
+    
+		// 显示编码器位置
+		sprintf(buffer, "Pos:%ld", (long)motor2.encoder_count);
+		OLED_ShowString(4, 1, buffer);
+		last_update = tick_count;
     }
 }
