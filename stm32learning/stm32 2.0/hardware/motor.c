@@ -38,12 +38,12 @@ void Motor_SetDirection(uint8_t motor_num, MotorDirection_t dir)
             case MOTOR_FORWARD:
                 GPIO_SetBits(GPIOB, GPIO_Pin_12);
                 GPIO_ResetBits(GPIOB, GPIO_Pin_13);
-				TIM_SetCompare2(TIM1,motor1.pwm_output);
+				PWM_SetMotor1(motor1.pwm_output);
                 break;
             case MOTOR_BACKWARD:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_12);
                 GPIO_SetBits(GPIOB, GPIO_Pin_13);
-				TIM_SetCompare2(TIM1,motor1.pwm_output);
+				PWM_SetMotor1(motor1.pwm_output);
                 break;
             case MOTOR_STOP:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_12);
@@ -55,12 +55,12 @@ void Motor_SetDirection(uint8_t motor_num, MotorDirection_t dir)
             case MOTOR_FORWARD:
                 GPIO_SetBits(GPIOB, GPIO_Pin_14);
                 GPIO_ResetBits(GPIOB, GPIO_Pin_15);
-				TIM_SetCompare3(TIM1,motor2.pwm_output);
+				PWM_SetMotor2(motor2.pwm_output);
                 break;
             case MOTOR_BACKWARD:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_14);
                 GPIO_SetBits(GPIOB, GPIO_Pin_15);
-				TIM_SetCompare3(TIM1,motor2.pwm_output);
+				PWM_SetMotor2(motor2.pwm_output);
                 break;
             case MOTOR_STOP:
                 GPIO_ResetBits(GPIOB, GPIO_Pin_14);

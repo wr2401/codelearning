@@ -30,12 +30,6 @@ int main(void)
     Key_Init();
 	OLED_Init();
     
-    // PID初始化
-    
-	
-	TIM_SetCompare2(TIM1, 20);
-	TIM_SetCompare3(TIM1, 20);
-    
     while(1)
     {
         UART_ProcessData();

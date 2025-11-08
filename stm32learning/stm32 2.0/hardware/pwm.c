@@ -18,8 +18,8 @@ void PWM_Init(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     
     // 定时器1基础配置（把高级定时器当作通用定时器输出PWM）
-    TIM_TimeBaseStructure.TIM_Period = 100 - 1;      // ARR
-    TIM_TimeBaseStructure.TIM_Prescaler = 720 - 1;     // 72MHz/72 = 1MHz, 1kHz PWM
+    TIM_TimeBaseStructure.TIM_Period = 1000 - 1;      // ARR
+    TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;     // 72MHz/72 = 1MHz, 1kHz PWM
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
@@ -59,7 +59,7 @@ void PWM_SetMotor1(int16_t pwm)
     }
     
     // 限制PWM值
-    if(pwm > 100) pwm = 100;
+    if(pwm > 1000) pwm = 1000;
     
     // 设置PWM占空比
     TIM_SetCompare2(TIM1, pwm);
@@ -78,7 +78,7 @@ void PWM_SetMotor2(int16_t pwm)
     }
     
     // 限制PWM值
-    if(pwm > 100) pwm = 100;
+    if(pwm > 1000) pwm = 1000;
     
     // 设置PWM占空比
     TIM_SetCompare3(TIM1, pwm);
