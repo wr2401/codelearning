@@ -5,6 +5,7 @@
 #include "menu.h"
 #include "timer.h"
 #include "pid.h"
+#include "Motor.h"
 
 extern SystemMode_t system_mode;
 

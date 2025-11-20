@@ -1,6 +1,6 @@
 #include "pid.h"
-#include "motor.h"
-#include "pwm.h"
+#include "Motor.h"
+#include "PWM.h"
 
 void PID_Init(Motor_t* motor, float kp, float ki, float kd)
 {
@@ -69,10 +69,16 @@ void Follow_Control(void)
     // 输出限幅
     if(output > 100) output = 100;
     if(output < -100) output = -100;
+	
+	Motor1_SetSpeed(0);
+	Motor2_SetSpeed((int8_t)output);
+	
     
     // 设置电机输出
-    PWM_SetMotor1(0);  // 电机1自由转动
-    PWM_SetMotor2((int16_t)output);  // 电机2跟随
+
+    //PWM_SetMotor1(0);  // 电机1自由转动
+    //PWM_SetMotor2((int16_t)output);  // 电机2跟随
+
 }
 
 void PID_Reset(Motor_t* motor)

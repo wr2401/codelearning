@@ -1,4 +1,3 @@
-#include "uart.h"
 #include "stm32f10x.h"
 #include "motor.h"
 #include "stdio.h"
@@ -24,7 +23,7 @@ void UART_Init(uint32_t baudrate)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     
     // 串口配置

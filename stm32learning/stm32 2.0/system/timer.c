@@ -2,9 +2,9 @@
 #include "stm32f10x_tim.h"
 #include "stm32f10x_rcc.h"
 #include "pid.h"
-#include "motor.h"
+#include "Motor.h"
 #include "encoder.h"
-#include "uart.h"
+#include "serial.h"
 #include "pwm.h"
 
 extern SystemMode_t system_mode;
@@ -21,7 +21,7 @@ void Timer_Init(void)
     // 定时器1配置 - 10ms中断
     TIM_TimeBaseStructure.TIM_Period = 1000 - 1;      // 1kHz
     TIM_TimeBaseStructure.TIM_Prescaler = 720 - 1;    // 72MHz/720 = 100kHz
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;// 重复计数器必须设为0
     TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
@@ -78,8 +78,12 @@ void TIM1_UP_IRQHandler(void)
             PID_Calculate(&motor2);
             
             // 设置电机PWM
-            PWM_SetMotor1(motor1.pwm_output);
-            PWM_SetMotor2(motor2.pwm_output);
+            //PWM_SetMotor1(motor1.pwm_output);
+            //PWM_SetMotor2(motor2.pwm_output);
+			
+			Motor1_SetSpeed(motor1.pwm_output);
+			Motor2_SetSpeed(motor2.pwm_output);
+			
         }
         else
         {

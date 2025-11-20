@@ -1,57 +1,42 @@
-#include "stm32f10x.h"
-#include "motor.h"
-#include "encoder.h"
-#include "timer.h"
-#include "pwm.h"
-#include "pid.h"
-#include "key.h"
-#include "menu.h"
-#include "uart.h"
-#include "OLED.h"
+#include "stm32f10x.h"                  // Device header
 #include "Delay.h"
+#include "OLED.h"
+#include "Motor.h"
+#include "Key.h"
+#include "menu.h"
+#include "timer.h"
+#include "PWM.h"
+#include "encoder.h"
+#include "pid.h"
+#include "serial.h"
 
-// 全局变量
 SystemMode_t system_mode = MODE_SPEED_CONTROL;
 uint32_t system_tick = 0;
-
-// 中断服务函数声明
-void TIM1_UP_IRQHandler(void);
-void USART1_IRQHandler(void);
-void EXTI0_IRQHandler(void);
+//int8_t Speed=40;
 
 int main(void)
 {
-    // 系统初始化
-    SystemInit();  // 标准库提供的系统时钟初始化
-    
-    // 各模块初始化
-    Motor_Init();
-    Encoder_Init();
-    PWM_Init();
-    Timer_Init();
-    Key_Init();
-    UART_Init(9600);//需在VOFA+设置相同的波特率
-    // PID参数初始化
+	SystemInit();
+	OLED_Init();
+	Motor_Init();
+	Key_Init();
+	Encoder_Init();
+	Timer_Init();
+	UART_Init(9600);
 	
-    PID_Init(&motor1, 0.303f, 0.05f, 0.10f); //KP增大，因为PWM范围变小
-    PID_Init(&motor2, 0.303f, 0.05f, 0.10f);
-    OLED_Init();
-    // 初始显示
-    Menu_UpdateDisplay();
-    while(1)
-    {
-        // 处理串口数据
-        UART_ProcessData();
-		//PWM_SetMotor1(50); // 电机1正转，50%占空比
-        //PWM_SetMotor2(-50); // 电机2反转，50%占空比
-        //Delay_ms(3000);
-
-        //PWM_SetMotor1(-50); // 电机1反转
-        //PWM_SetMotor2(50);  // 电机2正转
-        //Delay_ms(3000);
+	PID_Init(&motor1, 1.0f, 0.50f, 0.10f); //KP增大，因为PWM范围变小
+    PID_Init(&motor2, 1.0f, 0.50f, 0.10f);
+	Menu_UpdateDisplay();
+	
+	//OLED_ShowString(1, 1, "Speed:");
+	
+	while (1)
+	{
+		UART_ProcessData();
 		
-        // 菜单更新（非实时任务）
-        Menu_Update();
-        
-    }
+		//Motor1_SetSpeed(Speed);
+		//Motor2_SetSpeed(Speed);
+		//OLED_ShowSignedNum(1, 7, Speed, 3);
+		Menu_Update();
+	}
 }
