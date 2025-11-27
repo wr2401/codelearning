@@ -1,61 +1,96 @@
 #include "stm32f10x.h"
-#include "key.h"
-#include "oled.h"
-#include "pwm.h"
-#include "encoder.h"
 #include "timer.h"
-#include "serial.h"
+#include "key.h"
+#include "menu.h"
+#include "pwm.h"
 #include "motor.h"
-#include "infrared.h"
+#include "encoder.h"
 #include "pid.h"
+#include "infrared.h"
+#include "delay.h"
+#include "oled.h"
+#include <stdlib.h>
 #include <math.h>
 
-// 全局变量定义（只能在一个文件中定义）
-int32_t target_speed = 0;
-int32_t motor1_speed = 0;  // 如果需要保留这些变量
-int32_t motor2_speed = 0;
-uint8_t car_start = 0;
-
-// PID控制器定义
-PID_TypeDef pid_motor1;
-PID_TypeDef pid_motor2;
+PID_Type pid_left, pid_right;
+Menu_Param* menu_param;
 
 int main(void)
 {
-    SystemInit();
-    
-    Key_Init();
+    KEY_Init();
+    MENU_Init();
     OLED_Init();
     PWM_Init();
-    Encoder_Init();
-    Timer_Init();
-    Serial_Init();
-    Motor_Init();
-    Infrared_Init();
+    MOTOR_Init();
+    ENCODER_Init();
+    INFRARED_Init();
+    TIM1_Init();
     
-    PID_Init(&pid_motor1, 1.0f, 0.1f, 0.05f, 100.0f, 1000.0f);
-    PID_Init(&pid_motor2, 1.0f, 0.1f, 0.05f, 100.0f, 1000.0f);
+    PID_Init(&pid_left, 1.0, 0.1, 0.01);
+    PID_Init(&pid_right, 1.0, 0.1, 0.01);
     
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    menu_param = MENU_GetParam();
     
     while(1)
     {
-        Key_Check();
-        
-        if(car_start)
+        Key_Type key = KEY_Scan();
+        if(key != KEY_NONE)
         {
-            Infrared_Tracking();
-            Serial_SendData();
+            MENU_KeyHandler(key);
         }
+        
+        if(menu_param->on_off)
+        {
+            // 读取编码器速度
+            int16_t speed_left = ENCODER_GetSpeed1();
+            int16_t speed_right = ENCODER_GetSpeed2();
+            
+            // 读取红外循迹误差
+            int8_t line_error = INFRARED_GetLineError();
+            
+            // 基础速度和转向调整
+            int16_t base_speed = 40;  // 根据您的PWM周期100调整
+            int16_t adjust = line_error * 10;
+            
+            // 目标速度
+            int16_t target_left = base_speed + adjust;
+            int16_t target_right = base_speed - adjust;
+            
+            // PID计算
+            float out_left = PID_Calculate(&pid_left, target_left, speed_left);
+            float out_right = PID_Calculate(&pid_right, target_right, speed_right);
+            
+            // 限制输出范围 (您的PWM周期是100)
+            if(out_left > 100) out_left = 100;
+            if(out_left < -100) out_left = -100;
+            if(out_right > 100) out_right = 100;
+            if(out_right < -100) out_right = -100;
+            
+            // 设置电机速度
+            MOTOR_SetSpeed((int16_t)out_left, (int16_t)out_right);
+        }
+        else
+        {
+            MOTOR_SetSpeed(0, 0);
+        }
+        
+        Delay_ms(10);  // 使用您的Delay_ms
     }
 }
 
-void Car_Reset(void)
+void TIM1_UP_IRQHandler(void)
 {
-    target_speed = 0;
-    motor1_speed = 0;
-    motor2_speed = 0;
-    Motor_SetSpeed(0, 0);
-    PID_Clear(&pid_motor1);
-    PID_Clear(&pid_motor2);
+    if(TIM_GetITStatus(TIM1, TIM_IT_Update) != RESET)
+    {
+        // 定时更新PID参数
+        pid_left.kp = menu_param->kp;
+        pid_left.ki = menu_param->ki;
+        pid_left.kd = menu_param->kd;
+        
+        pid_right.kp = menu_param->kp;
+        pid_right.ki = menu_param->ki;
+        pid_right.kd = menu_param->kd;
+        
+        TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
+    }
 }

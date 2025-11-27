@@ -3,10 +3,9 @@
 
 #include "stm32f10x.h"
 
-void Encoder_Init(void);
-int16_t Encoder_GetCount1(void);
-int16_t Encoder_GetCount2(void);
-void Encoder_ClearCount1(void);
-void Encoder_ClearCount2(void);
+void ENCODER_Init(void);
+int16_t ENCODER_GetSpeed1(void);
+int16_t ENCODER_GetSpeed2(void);
+void ENCODER_Clear(void);
 
 #endif

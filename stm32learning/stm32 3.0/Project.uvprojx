@@ -731,14 +731,14 @@
               <FilePath>.\Hardware\Motor.h</FilePath>
             </File>
             <File>
-              <FileName>infrared.c</FileName>
+              <FileName>menu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\infrared.c</FilePath>
+              <FilePath>.\Hardware\menu.c</FilePath>
             </File>
             <File>
-              <FileName>infrared.h</FileName>
+              <FileName>menu.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\infrared.h</FilePath>
+              <FilePath>.\Hardware\menu.h</FilePath>
             </File>
             <File>
               <FileName>encoder.c</FileName>
@@ -751,16 +751,6 @@
               <FilePath>.\Hardware\encoder.h</FilePath>
             </File>
             <File>
-              <FileName>serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\serial.c</FilePath>
-            </File>
-            <File>
-              <FileName>serial.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\serial.h</FilePath>
-            </File>
-            <File>
               <FileName>pid.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\pid.c</FilePath>
@@ -769,6 +759,16 @@
               <FileName>pid.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>infrared.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\infrared.c</FilePath>
+            </File>
+            <File>
+              <FileName>infrared.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\infrared.h</FilePath>
             </File>
           </Files>
         </Group>
