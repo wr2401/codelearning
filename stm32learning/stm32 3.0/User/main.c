@@ -15,6 +15,9 @@
 PID_Type pid_left, pid_right;
 Menu_Param* menu_param;
 
+static uint8_t in_crossroad = 0;
+static uint32_t crossroad_timer = 0;
+
 int main(void)
 {
     KEY_Init();
@@ -50,17 +53,39 @@ int main(void)
             
             // 基础速度和转向调整
             int16_t base_speed = 40;  // 根据您的PWM周期100调整
-            int16_t adjust = line_error * 10;
+            int16_t target_left, target_right;
             
-            // 目标速度
-            int16_t target_left = base_speed + adjust;
-            int16_t target_right = base_speed - adjust;
+            // 十字路口处理逻辑
+            if(line_error == 10 && !in_crossroad) {
+                // 第一次检测到十字路口，开始直行通过
+                in_crossroad = 1;
+                crossroad_timer = 0;
+                target_left = base_speed;
+                target_right = base_speed;
+            }
+            else if(in_crossroad) {
+                // 正在通过十字路口，继续直行
+                target_left = base_speed;
+                target_right = base_speed;
+                crossroad_timer += 10;  // 每循环10ms，计时增加
+                
+                // 通过十字路口800ms后恢复循迹
+                if(crossroad_timer >= 800) {
+                    in_crossroad = 0;
+                }
+            }
+            else {
+                // 正常循迹模式
+                int16_t adjust = line_error * 10;
+                target_left = base_speed + adjust;
+                target_right = base_speed - adjust;
+            }
             
             // PID计算
             float out_left = PID_Calculate(&pid_left, target_left, speed_left);
             float out_right = PID_Calculate(&pid_right, target_right, speed_right);
             
-            // 限制输出范围 (您的PWM周期是100)
+            // 限制输出范围
             if(out_left > 100) out_left = 100;
             if(out_left < -100) out_left = -100;
             if(out_right > 100) out_right = 100;
@@ -72,6 +97,9 @@ int main(void)
         else
         {
             MOTOR_SetSpeed(0, 0);
+            // 停止时重置十字路口状态
+            in_crossroad = 0;
+            crossroad_timer = 0;
         }
         
         Delay_ms(10);  // 使用您的Delay_ms

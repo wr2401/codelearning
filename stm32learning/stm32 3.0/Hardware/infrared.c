@@ -34,12 +34,23 @@ int8_t INFRARED_GetLineError(void)
     uint8_t middle = INFRARED_ReadMiddle();
     uint8_t right = INFRARED_ReadRight();
     
-    if(middle && !left && !right) return 0;   // 直线
-    if(left && !middle && !right) return -1;  // 偏左
-    if(right && !middle && !left) return 1;   // 偏右
-    if(left && middle && !right) return -2;   // 大偏左
-    if(right && middle && !left) return 2;    // 大偏右
-    if(!left && !middle && !right) return -3; // 丢失路线
+    // 十字路口检测（所有传感器都检测到黑线）
+    if(left == 1 && middle == 1 && right == 1) 
+        return 10;   // 十字路口
+    
+    // 原有逻辑保持不变
+    if(middle == 1 && left == 0 && right == 0) 
+        return 0;    // 直线
+    if(left == 1 && middle == 0 && right == 0) 
+        return -1;   // 偏左
+    if(right == 1 && middle == 0 && left == 0) 
+        return 1;    // 偏右
+    if(left == 1 && middle == 1 && right == 0) 
+        return -2;   // 大偏左
+    if(right == 1 && middle == 1 && left == 0) 
+        return 2;    // 大偏右
+    if(left == 0 && middle == 0 && right == 0) 
+        return -3;   // 丢失路线
     
     return 0;
 }
