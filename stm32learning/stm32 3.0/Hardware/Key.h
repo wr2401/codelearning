@@ -3,11 +3,11 @@
 
 #include "stm32f10x.h"
 
-#define KEY_UP_PIN       GPIO_Pin_0
-#define KEY_UP_PORT      GPIOA
+#define KEY_UP_PIN       GPIO_Pin_14
+#define KEY_UP_PORT      GPIOC
 #define KEY_DOWN_PIN     GPIO_Pin_1
 #define KEY_DOWN_PORT    GPIOA
-#define KEY_ENTER_PIN    GPIO_Pin_2
+#define KEY_ENTER_PIN    GPIO_Pin_0
 #define KEY_ENTER_PORT   GPIOA
 
 typedef enum
